@@ -1,4 +1,5 @@
-#config.json
+config.json
+.env
 # compiled output
 /dist
 /tmp

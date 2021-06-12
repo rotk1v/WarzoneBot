@@ -1,7 +1,8 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
-const { token, prefix } = require("./config.json");
+const { prefix } = require("./config.json");
 const axios = require("axios").default;
+require("dotenv").config();
 
 function createRequest(tag, platform) {
   let options = {
@@ -129,4 +130,4 @@ client.on("message", (msg) => {
   }
 });
 
-client.login(token);
+client.login(process.env.TOKEN);
