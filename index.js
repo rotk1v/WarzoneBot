@@ -1,12 +1,7 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
-// const { token, prefix } = require("./config.json");
-const aws = require("aws-sdk");
+const { token, prefix } = require("./config.json");
 const axios = require("axios").default;
-
-let s3 = new aws.S3({
-  secretAccessKey: process.env.BOT_TOKEN,
-});
 
 function createRequest(tag, platform) {
   let options = {
@@ -134,5 +129,4 @@ client.on("message", (msg) => {
   }
 });
 
-// client.login(token);
-client.login(s3.secretAccessKey);
+client.login(token);
