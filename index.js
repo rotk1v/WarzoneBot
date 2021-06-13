@@ -149,7 +149,7 @@ client.on(
           console.log(error);
         });
 
-      await wait(1000);
+      /* await */ wait(1000);
 
       let player2 = /* await */ axios
         .request(createRequest(tag2API, platform2))
