@@ -48,7 +48,7 @@ client.on(
     if (platform != "battle" && platform != "acti" && platform != "steam") {
       displayPlat = "konsoll";
     }
-    if (args.length > 2) {
+    if (tag2API) {
       let displayPlat2 = "PC";
       if (
         platform2 != "battle" &&
