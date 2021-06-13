@@ -142,6 +142,9 @@ client.on("message", async (msg) => {
       .request(createRequest(tagAPI, platform))
       .then((response) => {
         return response.data.br;
+      })
+      .catch((error) => {
+        console.log(error);
       });
 
     await wait(1000);
@@ -150,6 +153,9 @@ client.on("message", async (msg) => {
       .request(createRequest(tag2API, platform2))
       .then((response) => {
         return response.data.br;
+      })
+      .catch((error) => {
+        console.log(error);
       });
 
     const statEmbed = {
