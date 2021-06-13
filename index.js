@@ -39,13 +39,14 @@ client.on("message", async (msg) => {
   const command = args.shift().toLowerCase();
 
   let [tag, platform, tag2, platform2] = args;
-  tagAPI = tag.replace("#", "%23");
+  let tagAPI = tag.replace("#", "%23");
+  let tag2API = "";
 
   let displayPlat = "PC";
   if (platform != "battle" && platform != "acti" && platform != "steam") {
     displayPlat = "konsoll";
   }
-  if (tag2) {
+  if (tag2 && platform2) {
     tag2API = tag2.replace("#", "%23");
     let displayPlat2 = "PC";
     if (platform2 != "battle" && platform2 != "acti" && platform2 != "steam") {
