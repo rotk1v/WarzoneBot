@@ -176,7 +176,7 @@ client.on("message", async (msg) => {
             " timer" +
             " | " +
             (player2?.timePlayed / 3600).toFixed(1) +
-            "timer",
+            " timer",
         },
         {
           name: "Matcher",
