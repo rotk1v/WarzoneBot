@@ -48,9 +48,15 @@ client.on(
     if (platform != "battle" && platform != "acti" && platform != "steam") {
       displayPlat = "konsoll";
     }
-    let displayPlat2 = "PC";
-    if (platform2 != "battle" && platform2 != "acti" && platform2 != "steam") {
-      displayPlat2 = "konsoll";
+    if (args.length > 2) {
+      let displayPlat2 = "PC";
+      if (
+        platform2 != "battle" &&
+        platform2 != "acti" &&
+        platform2 != "steam"
+      ) {
+        displayPlat2 = "konsoll";
+      }
     }
 
     if (command === "stats") {
