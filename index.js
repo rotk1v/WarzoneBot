@@ -42,13 +42,13 @@ client.on("message", async (msg) => {
   let tagAPI = tag.replace("#", "%23");
   let tag2API = "";
 
+  let displayPlat2 = "PC";
   let displayPlat = "PC";
   if (platform != "battle" && platform != "acti" && platform != "steam") {
     displayPlat = "konsoll";
   }
   if (tag2 && platform2) {
     tag2API = tag2.replace("#", "%23");
-    let displayPlat2 = "PC";
     if (platform2 != "battle" && platform2 != "acti" && platform2 != "steam") {
       displayPlat2 = "konsoll";
     }
