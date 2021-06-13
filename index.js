@@ -150,7 +150,7 @@ client.on("message", async (msg) => {
         console.log(error);
       });
 
-    await wait(1000);
+    await wait(1500);
 
     let player2 = await axios
       .request(createRequest(tag2API, platform2))
@@ -233,9 +233,7 @@ client.on("message", async (msg) => {
     };
     player1 && player2
       ? msg.channel.send({ embed: statEmbed })
-      : msg.channel.send(
-          "Profilen er enten ikke synlig eller så er taggen feil"
-        );
+      : msg.channel.send("Feil tags? Ikke endra privacy settingsa?");
   }
 });
 
