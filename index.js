@@ -54,7 +54,7 @@ client.on(
     }
 
     if (command === "stats") {
-      await axios
+      /* await */ axios
         .request(createRequest(tagAPI, platform))
         .then((response) => {
           const stats = response.data.br;
@@ -140,7 +140,7 @@ client.on(
     }
 
     if (command == "compare") {
-      let player1 = await axios
+      let player1 = /* await */ axios
         .request(createRequest(tagAPI, platform))
         .then((response) => {
           return response.data.br;
@@ -151,7 +151,7 @@ client.on(
 
       await wait(1000);
 
-      let player2 = await axios
+      let player2 = /* await */ axios
         .request(createRequest(tag2API, platform2))
         .then((response) => {
           return response.data.br;
