@@ -122,6 +122,10 @@ client.on("message", async (msg) => {
               value: stats?.kdRatio.toFixed(3),
               inline: true,
             },
+            {
+              name: "Revives",
+              value: stats?.revives,
+            },
           ],
         };
         stats
