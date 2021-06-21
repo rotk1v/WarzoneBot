@@ -12,4 +12,5 @@ module.exports = (old, fresh, p, f) => {
   if (old < fresh) return `[+${fresh - old}]`;
   if (old > fresh) return `[${fresh - old}]`;
   if (old == fresh) return "";
+  if (old == undefined || fresh == undefined) return "";
 };
