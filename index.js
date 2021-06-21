@@ -3,6 +3,7 @@ const client = new Discord.Client();
 const { prefix } = require("./config.json");
 const axios = require("axios").default;
 require("dotenv").config();
+const Compare = require("./helpers/CompareProgress");
 
 function createRequest(tag, platform) {
   let options = {
@@ -15,6 +16,29 @@ function createRequest(tag, platform) {
   };
   return options;
 }
+
+const getStatsFromDB = async (user) => {
+  let br = {};
+  await axios
+    .get(`https://mwbotdb.herokuapp.com/player/${user}`)
+    .then((response) => {
+      for (var i in response.data) {
+        if (response.data[i].br) {
+          console.log(response.data[i].br);
+          br = response.data[i].br;
+        }
+      }
+
+      return br;
+    });
+  return br;
+};
+
+const updateAfterComparison = async (userID, br) => {
+  await axios.put(`https://mwbotdb.herokuapp.com/player/${userID}`, {
+    br,
+  });
+};
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
@@ -39,8 +63,11 @@ client.on("message", async (msg) => {
   const command = args.shift().toLowerCase();
 
   let [tag, platform, tag2, platform2] = args;
+
   let tagAPI = tag.replace("#", "%23");
   let tag2API = "";
+
+  const userID = tagAPI.concat(platform);
 
   let displayPlat2 = "PC";
   let displayPlat = "PC";
@@ -55,10 +82,14 @@ client.on("message", async (msg) => {
   }
 
   if (command === "stats") {
+    let stats = "";
+
+    const old = await getStatsFromDB(userID);
+
     await axios
       .request(createRequest(tagAPI, platform))
       .then((response) => {
-        const stats = response.data.br;
+        stats = response.data.br;
 
         const statEmbed = {
           color: colors[Math.floor(Math.random() * colors.length)],
@@ -72,24 +103,32 @@ client.on("message", async (msg) => {
               name: "Tid spilt",
               value:
                 (stats?.timePlayed / 3600).toFixed(1) +
-                " timer \n" +
+                ` timer\n` +
                 (stats?.timePlayed / 86400).toFixed(1) +
                 " dager",
             },
             {
               name: "Matcher",
-              value: stats?.gamesPlayed,
+              value:
+                stats?.gamesPlayed +
+                ` ${Compare(old.gamesPlayed, stats.gamesPlayed)}`,
               inline: true,
             },
             {
               name: "Wins",
-              value: stats?.wins,
+              value: stats?.wins + ` ${Compare(old.wins, stats.wins)}`,
               inline: true,
             },
             {
               name: "W/L",
               value:
-                ((stats?.wins / stats?.gamesPlayed) * 100).toFixed(3) + "%",
+                ((stats?.wins / stats?.gamesPlayed) * 100).toFixed(3) +
+                "%" +
+                ` ${Compare(
+                  old.wins / old.gamesPlayed,
+                  stats.wins / stats.gamesPlayed,
+                  (p = true)
+                )}`,
               inline: true,
             },
             {
@@ -109,7 +148,7 @@ client.on("message", async (msg) => {
             },
             {
               name: "Kills",
-              value: stats?.kills,
+              value: stats?.kills + ` ${Compare(old.kills, stats.kills)}`,
               inline: true,
             },
             {
@@ -119,7 +158,14 @@ client.on("message", async (msg) => {
             },
             {
               name: "K/D",
-              value: stats?.kdRatio.toFixed(3),
+              value:
+                stats?.kdRatio.toFixed(3) +
+                ` ${Compare(
+                  old.kdRatio,
+                  stats.kdRatio,
+                  (p = false),
+                  (f = true)
+                )}`,
               inline: true,
             },
             {
@@ -139,6 +185,7 @@ client.on("message", async (msg) => {
         console.log(error);
       });
 
+    await updateAfterComparison(userID, stats);
     // msg.channel.send(
     //   `${msg.author.username} is playing on ${displayPlat}. Gamertag: ${tag}`
     // );
