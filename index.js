@@ -3,7 +3,8 @@ const client = new Discord.Client();
 const { prefix } = require("./config.json");
 const axios = require("axios").default;
 require("dotenv").config();
-const Compare = require("./helpers/CompareProgress");
+
+const StatEmbed = require("./helpers/StatEmbed");
 
 function createRequest(tag, platform) {
   let options = {
@@ -24,7 +25,6 @@ const getStatsFromDB = async (user) => {
     .then((response) => {
       for (var i in response.data) {
         if (response.data[i].br) {
-          console.log(response.data[i].br);
           br = response.data[i].br;
         }
       }
@@ -42,16 +42,6 @@ const updateAfterComparison = async (userID, br) => {
 
 const wait = (ms) => new Promise((resolve, reject) => setTimeout(resolve, ms));
 
-const colors = [
-  "0A92F8",
-  "1DD64A",
-  "4B4C4D",
-  "FA007D",
-  "18EB08",
-  "560AFF",
-  "A71E1E",
-];
-
 client.on("ready", () => {
   console.log(`Bot: ${client.user.tag} is running!`);
 });
@@ -65,231 +55,77 @@ client.on("message", async (msg) => {
   let [tag, platform, tag2, platform2] = args;
 
   let tagAPI = tag.replace("#", "%23");
-  let tag2API = "";
 
   const userID = tagAPI.concat(platform);
 
-  let displayPlat2 = "PC";
-  let displayPlat = "PC";
-  if (platform != "battle" && platform != "acti" && platform != "steam") {
-    displayPlat = "konsoll";
-  }
-  if (tag2 && platform2) {
-    tag2API = tag2.replace("#", "%23");
-    if (platform2 != "battle" && platform2 != "acti" && platform2 != "steam") {
-      displayPlat2 = "konsoll";
+  if (command === "stats") {
+    // let stats = "";
+    try {
+      const old = await getStatsFromDB(userID);
+
+      const response = await axios.request(createRequest(tagAPI, platform));
+      const stats = response.data.br;
+
+      let player1 = {
+        tag: tag,
+        platform: platform,
+        old: old,
+        data: stats,
+      };
+
+      const embedResult = StatEmbed(player1, (player2 = false));
+
+      stats
+        ? msg.channel.send({ embed: embedResult })
+        : msg.channel.send(
+            response.data.message ||
+              "Profilen er enten ikke synlig eller så er taggen feil"
+          );
+
+      await updateAfterComparison(userID, stats);
+    } catch (error) {
+      console.error(error);
     }
   }
 
-  if (command === "stats") {
-    let stats = "";
-
-    const old = await getStatsFromDB(userID);
-
-    await axios
-      .request(createRequest(tagAPI, platform))
-      .then((response) => {
-        stats = response.data.br;
-
-        const statEmbed = {
-          color: colors[Math.floor(Math.random() * colors.length)],
-          title: tag + ", " + displayPlat,
-          description: "Warzone stats for kule gutter",
-          footer: {
-            text: "!stats TAG PLATFORM \nPLATFORM: battle, psn, xbl, acti",
-          },
-          fields: [
-            {
-              name: "Tid spilt",
-              value:
-                (stats?.timePlayed / 3600).toFixed(1) +
-                ` timer\n` +
-                (stats?.timePlayed / 86400).toFixed(1) +
-                " dager",
-            },
-            {
-              name: "Matcher",
-              value:
-                stats?.gamesPlayed +
-                ` ${Compare(old.gamesPlayed, stats.gamesPlayed)}`,
-              inline: true,
-            },
-            {
-              name: "Wins",
-              value: stats?.wins + ` ${Compare(old.wins, stats.wins)}`,
-              inline: true,
-            },
-            {
-              name: "W/L",
-              value:
-                ((stats?.wins / stats?.gamesPlayed) * 100).toFixed(3) +
-                "%" +
-                ` ${Compare(
-                  old.wins / old.gamesPlayed,
-                  stats.wins / stats.gamesPlayed,
-                  (p = true)
-                )}`,
-              inline: true,
-            },
-            {
-              name: "Topp 5",
-              value: stats?.topFive,
-              inline: true,
-            },
-            {
-              name: "Topp 10",
-              value: stats?.topTen,
-              inline: true,
-            },
-            {
-              name: "Topp 25",
-              value: stats?.topTwentyFive,
-              inline: true,
-            },
-            {
-              name: "Kills",
-              value: stats?.kills + ` ${Compare(old.kills, stats.kills)}`,
-              inline: true,
-            },
-            {
-              name: "Deaths",
-              value: stats?.deaths,
-              inline: true,
-            },
-            {
-              name: "K/D",
-              value:
-                stats?.kdRatio.toFixed(3) +
-                ` ${Compare(
-                  old.kdRatio,
-                  stats.kdRatio,
-                  (p = false),
-                  (f = true)
-                )}`,
-              inline: true,
-            },
-            {
-              name: "Kills/game",
-              value: (stats?.kills / stats?.gamesPlayed).toFixed(3),
-              inline: true,
-            },
-            {
-              name: "Revives",
-              value: stats?.revives,
-              inline: true,
-            },
-          ],
-        };
-        stats
-          ? msg.channel.send({ embed: statEmbed })
-          : msg.channel.send(
-              response.data.message ||
-                "Profilen er enten ikke synlig eller så er taggen feil"
-            );
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-
-    await updateAfterComparison(userID, stats);
-    // msg.channel.send(
-    //   `${msg.author.username} is playing on ${displayPlat}. Gamertag: ${tag}`
-    // );
-  }
-
   if (command == "compare") {
-    let player1 = await axios
-      .request(createRequest(tagAPI, platform))
-      .then((response) => {
-        return response.data.br;
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    const tag2API = tag2.replace("#", "%23");
+    let player1 = "";
+    let player2 = "";
+    let player1Embed = {};
+    let player2Embed = {};
 
-    await wait(1500);
+    try {
+      const player1Response = await axios.request(
+        createRequest(tagAPI, platform)
+      );
+      player1 = await player1Response.data.br;
 
-    let player2 = await axios
-      .request(createRequest(tag2API, platform2))
-      .then((response) => {
-        return response.data.br;
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+      await wait(1500);
 
-    const statEmbed = {
-      color: colors[Math.floor(Math.random() * colors.length)],
-      title: tag + ", " + displayPlat + " | " + tag2 + ", " + displayPlat2,
-      description: "Warzone stats for kule gutter",
-      footer: {
-        text: "!stats TAG PLATFORM \nPLATFORM: battle, psn, xbl, acti",
-      },
-      fields: [
-        {
-          name: "Tid spilt",
-          value:
-            (player1?.timePlayed / 3600).toFixed(1) +
-            " timer" +
-            " | " +
-            (player2?.timePlayed / 3600).toFixed(1) +
-            " timer",
-        },
-        {
-          name: "Matcher",
-          value: player1?.gamesPlayed + " | " + player2?.gamesPlayed,
-          inline: true,
-        },
-        {
-          name: "Wins",
-          value: player1?.wins + " | " + player2?.wins,
-          inline: true,
-        },
-        {
-          name: "W/L",
-          value:
-            ((player1?.wins / player1?.gamesPlayed) * 100).toFixed(3) +
-            "%" +
-            " | " +
-            ((player2?.wins / player2?.gamesPlayed) * 100).toFixed(3) +
-            "%",
-          inline: true,
-        },
-        {
-          name: "Topp 5",
-          value: player1?.topFive + " | " + player2?.topFive,
-          inline: true,
-        },
-        {
-          name: "Topp 10",
-          value: player1?.topTen + " | " + player2?.topTen,
-          inline: true,
-        },
-        {
-          name: "Topp 25",
-          value: player1?.topTwentyFive + " | " + player2?.topTwentyFive,
-          inline: true,
-        },
-        {
-          name: "Kills",
-          value: player1?.kills + " | " + player2?.kills,
-          inline: true,
-        },
-        {
-          name: "Deaths",
-          value: player1?.deaths + " | " + player2?.deaths,
-          inline: true,
-        },
-        {
-          name: "K/D",
-          value:
-            player1?.kdRatio.toFixed(3) + " | " + player2?.kdRatio.toFixed(3),
-          inline: true,
-        },
-      ],
-    };
+      const player2Response = await axios.request(
+        createRequest(tag2API, platform2)
+      );
+      player2 = await player2Response.data.br;
+
+      player1Embed = {
+        tag: tag,
+        platform: platform,
+        old: null,
+        data: player1,
+      };
+      player2Embed = {
+        tag: tag2,
+        platform: platform2,
+        old: null,
+        data: player2,
+      };
+    } catch (error) {
+      console.error(error);
+    }
+
     player1 && player2
-      ? msg.channel.send({ embed: statEmbed })
+      ? msg.channel.send({ embed: StatEmbed(player1Embed, player2Embed) })
       : msg.channel.send("Feil tags? Ikke endra privacy settingsa?");
   }
 });
