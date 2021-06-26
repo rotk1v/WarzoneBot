@@ -59,7 +59,6 @@ client.on("message", async (msg) => {
   const userID = tagAPI.concat(platform);
 
   if (command === "stats") {
-    // let stats = "";
     try {
       const old = await getStatsFromDB(userID);
 
@@ -101,6 +100,7 @@ client.on("message", async (msg) => {
       );
       player1 = await player1Response.data.br;
 
+      // delay needed because of API limitations
       await wait(1500);
 
       const player2Response = await axios.request(
