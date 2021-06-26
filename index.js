@@ -169,8 +169,14 @@ client.on("message", async (msg) => {
               inline: true,
             },
             {
+              name: "Kills/game",
+              value: (stats?.kills / stats?.gamesPlayed).toFixed(3),
+              inline: true,
+            },
+            {
               name: "Revives",
               value: stats?.revives,
+              inline: true,
             },
           ],
         };
