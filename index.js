@@ -11,7 +11,7 @@ function createRequest(tag, platform) {
     method: "GET",
     url: `https://call-of-duty-modern-warfare.p.rapidapi.com/warzone/${tag}/${platform}`,
     headers: {
-      "x-rapidapi-key": "869af04304msha010d0606a94180p1d7f6djsne8d407c61d95",
+      "x-rapidapi-key": process.env.API_KEY,
       "x-rapidapi-host": "call-of-duty-modern-warfare.p.rapidapi.com",
     },
   };
